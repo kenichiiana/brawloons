@@ -2,7 +2,7 @@
 
 The final requirement for our CMSC 137 laboratory class
 
-# To avoid conflicts when pushing your changes onto our working repository, kindly follow these steps
+# Guidelines
 
 ```
 1. Clone the repository
