@@ -6,12 +6,16 @@ public class Server{
    public static ServerSocket serverSocket;
     
     public static void acceptClients(){
+	    //Create an arraylist of clients
         ArrayList<ClientThread> clients =  new ArrayList<ClientThread>();
-
+        
+        System.out.println("Waiting for Clients");
+	    //continue accepting clients
         while(true){
             try {
                 Socket socket = serverSocket.accept();
                 ClientThread client = new ClientThread(socket);
+		        //Create threads for each client
                 Thread t = new Thread(client);
                 t.start();
                 clients.add(client);

@@ -12,6 +12,7 @@ public class Client {
 			// Instantiate a new socket for the client
 			// using the arguments serverID and port
 			Socket userClient = new Socket(serverID, roomPort);
+			
 			// Receive data from the server
 			InputStream fromServer = userClient.getInputStream();
 			DataInputStream in = new DataInputStream(fromServer);
