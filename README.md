@@ -34,6 +34,6 @@ ex: java Chat 10.0.5.35 Ken
 
 ## Authors
 
-* **Kenichii Ana** - [PurpleBooth](https://github.com/kenichiiana)
+* **Kenichii Ana** - [kenichiiana](https://github.com/kenichiiana)
 * **John Carlo Ricablanca** - []
 * **Lorenzo Zavalla** - []
