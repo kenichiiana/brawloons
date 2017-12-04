@@ -9,15 +9,14 @@ public class Player  {
 	private String name;
 	private InetAddress ipaddress;
 	private int port;
-	
+	public static int counter=0;
 	public Player(String usern, InetAddress address, int port,int x,int y) {
 		this.name = usern;
 		this.ipaddress = address;
 		this.port = port;
 		this.x = x;
 		this.y = y;
-		this.balloon1 = true;
-		this.balloon2 = true;
+		counter++;
 	}
 	
 	public InetAddress getAddress(){
@@ -40,4 +39,9 @@ public class Player  {
 		return y;
 	}
 	
+	public static int getNumberOfPlayers(){
+		
+		return counter;
+		
+	}
 }

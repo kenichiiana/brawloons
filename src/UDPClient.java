@@ -1,6 +1,7 @@
 import java.net.*;
 import java.io.*;
 import java.util.Random;
+import java.util.*;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -20,7 +21,9 @@ import javax.swing.JFrame;
 public class UDPClient extends Canvas implements Runnable {
 	String name;
 	String server;
+	int score; 
 	int x,y;
+	boolean balloon1,balloon2;
 	int port;
 	Thread t = new Thread(this);
 	DatagramSocket socket = new DatagramSocket();
@@ -34,6 +37,10 @@ public class UDPClient extends Canvas implements Runnable {
 	public static int scale = 3;
 	
 	private BufferedImage p1,p2,p1b1,p1b2;
+	private BufferedImage [] otherBodyImage = new BufferedImage [5];
+	private BufferedImage [] otherB1Image = new BufferedImage [5];
+	private BufferedImage [] otherB2Image = new BufferedImage [5];
+	
 	
 	private keyboard key;
 	
@@ -42,7 +49,9 @@ public class UDPClient extends Canvas implements Runnable {
 	private boolean running = false;
 
     private Rectangle p1Bounds,p2Bounds,p1b1Bounds,p1b2Bounds;
-	
+	private Rectangle [] otherBodyBounds = new Rectangle [5];
+	private Rectangle [] otherB1Bounds = new Rectangle [5];
+	private Rectangle [] otherB2Bounds = new Rectangle [5];
 	
 	//private Screen screen;
 	
@@ -52,7 +61,8 @@ public class UDPClient extends Canvas implements Runnable {
 	private int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
 	
 	//---------------------------------------end of UI things
-	
+	Map<String, List<String>> otherPlayers = new HashMap<String, List<String>>();    
+
 	
 	public UDPClient(String server, String port, String name) throws Exception {
 		this.server = server;
@@ -60,6 +70,10 @@ public class UDPClient extends Canvas implements Runnable {
 		this.port = Integer.parseInt(port);
 		this.x = 100;
 		this.y = 200;
+		this.balloon1 = true;
+		this.balloon2 = true;
+		this.score = 0;
+		
 		socket.setSoTimeout(100);
 		
 		Dimension size = new Dimension(width*scale,height * scale);
@@ -111,7 +125,7 @@ public class UDPClient extends Canvas implements Runnable {
 			//BufferedReader buffer = new BufferedReader(new InputStreamReader(System.in)); //sample data sent to server to be broadcast 
 			//String message = buffer.readLine();
 
-			send("PLAYER "+name+" "+x+" "+y); // send to server all relevant data as string
+			send("PLAYER "+this.name+" "+this.x+" "+this.y+" "+this.balloon1+" "+this.balloon2); // send to server all relevant data as string
 		//}catch(IOException e){
 			//e.printStackTrace();
 		//}
@@ -143,18 +157,34 @@ public class UDPClient extends Canvas implements Runnable {
 				System.out.println("Connected.");
 			}else if (!connected){
 				System.out.println("Connecting..");				
-				send("CONNECT "+name+" "+x+" "+y);
+				send("CONNECT "+this.name+" "+this.x+" "+this.y);
 			}else if (connected){
 				//System.out.println("Connected and Ready to play"); // if connected do game-related tasks
 				// GAMEEEEEEEEEEEEE
-				update();
-				//render();
 				//SHOULD RECEIVE ALL MESSAGES
+				
 				if (serverData.startsWith("PLAYER")){ //parse data from server
 					String[] message = serverData.split(" ");
-					System.out.println("Received from:"+message[1]+": "+message[2]+" "+message[3]);
+					//System.out.println("Received from:"+message[1]+": "+message[2]+" "+message[3]+" "+message[4]+" "+message[5]);
+					
+					
+					List<String> data = new ArrayList<String>();
+					
+					data.add(message[2]);
+					data.add(message[3]);
+					data.add(message[4]);
+					data.add(message[5]);
+									
+					otherPlayers.put(message[1], data);	
+					
+					
+					
 				}
+					
+					update();
+					render();
 					sendToServer();
+			
 			}
 						
 		}
@@ -166,17 +196,17 @@ public class UDPClient extends Canvas implements Runnable {
 	public void update() {
 		key.update();
 		
-		//if(p.balloon1 == true || p.balloon2 == true) {
+		if(this.balloon1 == true || this.balloon2 == true) {
+		
 			if(key.space) { 
 				if(counter % 2== 0) {
-					
-					this.y -= 1;
-					
+					this.y -= 1;				
 				}
 			}
+			
 			if(key.left) if(counter % 2 == 0)this.x -= 1;
 			if(key.right) if(counter % 2 == 0)this.x += 1;
-			
+		}		
 	}
 
 	String bg = "char1Right.png";
@@ -265,13 +295,68 @@ public class UDPClient extends Canvas implements Runnable {
 	
 		//for player movement
 		Graphics2D g2d = (Graphics2D)g;
+		boolean win = false;
+		
+		if(!(otherPlayers.isEmpty())){
+						
+		int x=0;
+			
+			for(Iterator ite = otherPlayers.keySet().iterator();ite.hasNext();){ 
+				String PName = (String)ite.next();
+				if(!(PName.equals(name))){
+					
+					try{
+						otherBodyImage[x] = ImageIO.read(getClass().getResource("others.png"));
+						otherB1Image[x] = ImageIO.read(getClass().getResource("balloon.png"));
+						otherB2Image[x] = ImageIO.read(getClass().getResource("balloon.png"));
+					
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					List<String> data= otherPlayers.get(PName);
+					int otherX = Integer.parseInt(data.get(0));
+					int otherY = Integer.parseInt(data.get(1));
+					
+					//draws image
+					g2d.drawImage(otherBodyImage[x],otherX,otherY,this);	
+					if(Boolean.parseBoolean(data.get(2)))
+					{
+						g2d.drawImage(otherB1Image[x], otherX-25,otherY-20,this);
+						win = false;
+					}
+					else{
+						win = true;
+					}
+					if(Boolean.parseBoolean(data.get(3)))
+					{
+						g2d.drawImage(otherB2Image[x], otherX+25,otherY-20,this);
+						win = false;
+					}
+					else
+					{
+						win = true;
+					}
+					
+					
+					otherBodyBounds[x] = new Rectangle(otherX,otherY,52,100);
+					otherB1Bounds[x] = new Rectangle(otherX-25,otherY-20,48,50); 
+					otherB2Bounds[x] = new Rectangle(otherX+25,otherY-20,48,50); 
+						
+					x++;
+				}		
+			}	
+			
+		}
+		
+		
 		g2d.drawImage(p1,this.x, this.y,this);
-		g2d.drawImage(p2,325,175,this);	
+		//g2d.drawImage(p2,325,175,this);	
 		
 		g.setColor(Color.YELLOW);
-		g.setFont(new Font("Impact", Font.PLAIN, 20));
-		g.drawString("1", this.x+20,this.y+120);
-		//g2d.drawImage(p2,0, 340,this);	
+		g.setFont(new Font("Impact", Font.PLAIN, 16));
+		g.drawString("You", this.x+13,this.y+120);
 		
 		p1Bounds = new Rectangle();
 		p1Bounds.setSize(52, 100);
@@ -279,47 +364,58 @@ public class UDPClient extends Canvas implements Runnable {
 
 		p1b1Bounds = new Rectangle(this.x-25,this.y-20,48,50); 
 		p1b2Bounds = new Rectangle(this.x+25,this.y-20,48,50); 
-		//g2d.setColor(Color.WHITE);
-		//g2d.fillRect(p.x-25,p.y-20,48,50); 
-	
-		//if(p.balloon1 == true)
-		//if(p.balloon2 == true)	
-			g2d.drawImage(p1b1, this.x-25,this.y-20,this);
 		
-			g2d.drawImage(p1b2, this.x+25,this.y-20,this);
+		if(this.balloon1 == true)g2d.drawImage(p1b1, this.x-25,this.y-20,this);
+		if(this.balloon2 == true)g2d.drawImage(p1b2, this.x+25,this.y-20,this);
 		
+		if(this.balloon1 == false && this.balloon2 == false){
 		
-		p2Bounds = new Rectangle();
-		p2Bounds.setSize(52, 100);
-		p2Bounds.setLocation(325, 175);
+			g.setColor(Color.RED);
+			g.setFont(new Font("Impact", Font.PLAIN, 24));
+			g.drawString("You Lose", 300,220);
+				
+		}
 		
+		if(win){
+			g.setColor(Color.YELLOW);
+			g.setFont(new Font("Impact", Font.PLAIN, 24));
+			g.drawString("You Win", 300,220);
+			
+		}
+			
+			for(Iterator ite = otherPlayers.keySet().iterator();ite.hasNext();)
+			{ 
+				int x=0;
 		
-		
-		
-		/*
-		if (p1Bounds.intersects(p2Bounds)) {	
-			if(toggleLeft == true ) p.x++;
-			else {
-				p.x--;	
+				String PName = (String)ite.next();
+				if(!(PName.equals(name))){
+			
+					if (p1Bounds.intersects(otherBodyBounds[x])) {	
+						if(toggleLeft == true ) this.x++;
+						else {
+							this.x--;	
+						}	
+					}
+					
+					if (p1b1Bounds.intersects(otherBodyBounds[x])) {
+						this.balloon1 = false;
+						
+					}
+					
+					if (p1b2Bounds.intersects(otherBodyBounds[x])) {
+						this.balloon2 = false;
+						
+					}
+					/*
+					if(this.balloon1 == false && this.balloon2 == false) {
+						
+						
+						//end the game
+					}*/
+				}
+				x++;
 			}	
-		}
-		
-		if (p1b1Bounds.intersects(p2Bounds)) {
-			p.balloon1 = false;
 			
-		}
-		
-		if (p1b2Bounds.intersects(p2Bounds)) {
-			p.balloon2 = false;
-			
-		}
-		
-		if(p.balloon1 == false && p.balloon2 == false) {
-			
-			
-			//end the game
-		}*/
-		
 		g.dispose();	
 		bs.show();
 	}

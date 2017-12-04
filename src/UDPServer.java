@@ -32,8 +32,7 @@ public class UDPServer implements Runnable{
 	public void broadcast(String msg){ // send string data to all clients
 		for(Iterator ite = players.keySet().iterator();ite.hasNext();){ //for each UDPClient send message and other players' info
 			String name = (String)ite.next();
-			Player player = players.get(name);
-			System.out.println("broadcast: "+msg);			
+			Player player = players.get(name);			
 			send(player,msg);
 		}
 	}
@@ -62,7 +61,6 @@ public class UDPServer implements Runnable{
 				}catch(Exception ioe) {}
 				
 				playerIN = new String(in);
-				System.out.println("rawdata: "+playerIN); //prints none
 				playerIN = playerIN.trim();
 				
 				
@@ -79,7 +77,7 @@ public class UDPServer implements Runnable{
 				if(playerIN.startsWith("PLAYER")){ // parse client data and broadcast to other players
 					String token[] = playerIN.split(" ");
 										//name 		//x axis		//y axis
-					broadcast("PLAYER " +token[1]+" "+token[2]+" "+token[3]);
+					broadcast("PLAYER " +token[1]+" "+token[2]+" "+token[3]+" "+token[4]+" "+token[5]);
 				}
 				
 				
@@ -90,12 +88,12 @@ public class UDPServer implements Runnable{
 	
 	}//end of run
 	
-	public static void main(String args[]){//java UDPServer portnumber
+	/* public static void main(String args[]){//java UDPServer portnumber
 		if (args.length != 1){
 			System.out.println("Port Required!");
 			System.exit(1);
 		}
 		
 		new UDPServer(Integer.parseInt(args[0]));
-	}
+	} */
 }

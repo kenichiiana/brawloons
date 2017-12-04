@@ -5,7 +5,7 @@ import java.util.*;
 import java.awt.*;	
 import java.awt.event.*;
 
-public class Chat {
+public class Chat extends JPanel {
 	BufferedReader receive;
 	PrintWriter broadcast;
 	
@@ -31,7 +31,7 @@ public class Chat {
 		
 		// set gui parameters
 		textField.setEditable(true);
-		System.out.println("YO");
+		System.out.println("Connected..");
 		textField.setBorder(BorderFactory.createCompoundBorder(textField.getBorder(), BorderFactory.createEmptyBorder(5,5,5,5)));
 		messageArea	.setEditable(false);
 		messageArea.setMargin(new Insets(10, 10, 10, 10));

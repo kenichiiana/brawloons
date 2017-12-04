@@ -11,9 +11,16 @@ public class ChatServer {
 		= new ArrayList<PrintWriter>();
 	ServerSocket serverSocket = null;
 	
-	public ChatServer() throws Exception{
-		System.out.println("Starting chat server...");
-		try {
+	public ChatServer(String[] args) throws Exception{
+        System.out.println("Starting chat server...");
+        if (args.length != 1){
+			System.out.println("Port Required! " + args.length);
+			System.exit(1);
+		}
+        //also run UDPServer up entry to this chat server
+        new UDPServer(Integer.parseInt(args[0]));
+        
+        try {
 			serverSocket = new ServerSocket(PORT_NUMBER);
 			while(true) {
 				// this handles messages as well as connections
